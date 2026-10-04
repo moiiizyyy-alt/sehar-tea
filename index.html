@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sahar Tea</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout concept: a cup seen from above is the hero; below it a harvest calendar, four teas, and a working steep timer. */
+:root{
+  --bg:#EDF1E8;
+  --surface:#F8FAF4;
+  --fg:#13251E;
+  --muted:#51655B;
+  --line:#C9D4C4;
+  --leaf:#2E5B45;
+  --leaf-dark:#1F4033;
+  --accent:#E3A010;
+  --on-accent:#13251E;
+  --liquid-a:#C67A0B;
+  --liquid-b:#EBAA2E;
+  --rim:#FBFCF8;
+  --saucer:#DCE5D6;
+  --font-display:"Syne","Trebuchet MS",system-ui,sans-serif;
+  --font-body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"DM Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1914;--surface:#14261F;--fg:#E7EEE2;--muted:#9DB0A4;--line:#27403A;
+    --leaf:#7FBF9A;--leaf-dark:#2F6A4E;--accent:#F0A81C;
+    --liquid-a:#B8700A;--liquid-b:#E39B22;--rim:#1B3329;--saucer:#10211A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1914;--surface:#14261F;--fg:#E7EEE2;--muted:#9DB0A4;--line:#27403A;
+  --leaf:#7FBF9A;--leaf-dark:#2F6A4E;--accent:#F0A81C;
+  --liquid-a:#B8700A;--liquid-b:#E39B22;--rim:#1B3329;--saucer:#10211A;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--bg);color:var(--fg);
+  font-family:var(--font-body);font-size:17px;line-height:1.6;
+  padding-inline:clamp(16px,4vw,40px);padding-block:0;
+}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1120px;margin-inline:auto}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0}
+.eyebrow{font-family:var(--font-mono);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0}
+
+/* top bar */
+.top{padding-block:20px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{font-family:var(--font-display);font-weight:800;font-size:1.5rem;letter-spacing:-.02em;text-decoration:none}
+.bar nav{display:flex;gap:22px;flex-wrap:wrap;font-size:.95rem;font-weight:500}
+.bar nav a{text-decoration:none;color:var(--muted)}
+.bar nav a:hover{color:var(--fg)}
+
+/* hero */
+.hero{padding-block:clamp(24px,5vw,64px) clamp(56px,8vw,96px)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(32px,5vw,72px);align-items:center}
+h1{font-weight:800;font-size:clamp(2.7rem,7.4vw,5.6rem);line-height:.96;letter-spacing:-.035em;margin-block:18px 22px}
+.lede{font-size:1.12rem;color:var(--muted);max-width:34em;margin:0 0 28px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-block;padding:14px 24px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:600;text-decoration:none;border:2px solid var(--accent);transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:var(--fg);border-color:var(--fg)}
+.facts{display:flex;gap:clamp(20px,4vw,44px);flex-wrap:wrap;margin:40px 0 0;padding:0}
+.facts div{min-width:0}
+.facts dt{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.facts dd{margin:2px 0 0;font-family:var(--font-display);font-weight:700;font-size:1.7rem}
+
+/* the cup from above */
+.cup-wrap{position:relative;width:min(100%,500px);aspect-ratio:1;margin-inline:auto}
+.saucer,.cup,.liquid{position:absolute;border-radius:50%}
+.saucer{inset:0;background:var(--saucer);box-shadow:inset 0 0 0 1px var(--line)}
+.cup{inset:11%;background:var(--rim);box-shadow:0 26px 40px -22px rgba(0,0,0,.45),inset 0 0 0 1px var(--line)}
+.liquid{inset:22%;background:radial-gradient(circle at 38% 32%,var(--liquid-b),var(--liquid-a) 72%);box-shadow:inset 0 6px 18px rgba(0,0,0,.28);animation:swirl 40s linear infinite}
+.leaf{position:absolute;width:11%;height:4%;border-radius:100% 0 100% 0;background:var(--leaf-dark);opacity:.9}
+.l1{top:30%;left:34%;rotate:-28deg}
+.l2{top:46%;left:58%;rotate:34deg}
+.l3{top:62%;left:38%;rotate:-70deg}
+.l4{top:38%;left:56%;rotate:110deg}
+.l5{top:58%;left:56%;rotate:12deg}
+@keyframes swirl{to{transform:rotate(360deg)}}
+.tag{position:absolute;padding:6px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-family:var(--font-mono);font-size:.8rem}
+.tag.t1{top:6%;left:2%}
+.tag.t2{top:42%;right:-2%}
+.tag.t3{bottom:8%;left:10%}
+
+/* sections */
+section.block{padding-block:clamp(56px,9vw,112px);border-top:1px solid var(--line)}
+.head{display:grid;gap:12px;max-width:40rem;margin-bottom:clamp(28px,4vw,48px)}
+.head h2{font-weight:700;font-size:clamp(1.9rem,4.4vw,3rem);line-height:1.05;letter-spacing:-.025em}
+.head p{margin:0;color:var(--muted)}
+
+/* harvest calendar */
+.cal-scroll{overflow-x:auto;padding-bottom:8px}
+.cal{min-width:700px;display:grid;gap:10px}
+.cal-row{display:grid;grid-template-columns:11rem repeat(12,minmax(0,1fr));align-items:center;gap:4px}
+.cal-row .lab{font-size:.92rem;font-weight:500;padding-right:8px}
+.cal-row .m{font-family:var(--font-mono);font-size:.72rem;text-align:center;color:var(--muted);padding-block:6px;border-radius:6px}
+.cal-row .m.now{background:var(--accent);color:var(--on-accent);font-weight:500}
+.cal-row .cell{height:34px;border-radius:999px;background:var(--leaf)}
+.cal-row .cell.spice{background:var(--accent)}
+.cal-row .track{grid-column:2 / 14;grid-row:1;height:34px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
+.cal-row .cell{grid-row:1}
+.cal-note{font-family:var(--font-mono);font-size:.78rem;color:var(--muted);margin:18px 0 0}
+
+/* lineup */
+.lineup{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:grid;gap:14px;align-content:start;min-width:0}
+.swatch{width:46px;height:46px;border-radius:50%;box-shadow:inset 0 -6px 10px rgba(0,0,0,.2)}
+.card h3{font-weight:700;font-size:1.3rem;line-height:1.15;letter-spacing:-.01em}
+.card .origin{font-family:var(--font-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+.card p.note{margin:0;color:var(--muted);font-size:.97rem}
+.card .specs{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--font-mono);font-size:.8rem;border-top:1px solid var(--line);padding-top:12px}
+.card .price{font-weight:600}
+
+/* brew guide */
+.brew{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(24px,4vw,56px);align-items:start}
+.tabs{display:grid;gap:8px}
+.tab{font:inherit;font-weight:500;text-align:left;padding:14px 18px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.tab[aria-selected="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,3vw,36px);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:center}
+.readout{display:grid;gap:18px;min-width:0}
+.readout .big{font-family:var(--font-display);font-weight:800;font-size:clamp(3rem,7vw,4.6rem);line-height:1;letter-spacing:-.03em}
+.readout .big small{font-size:.4em;font-weight:700}
+.row{display:flex;gap:28px;flex-wrap:wrap}
+.row div{min-width:0}
+.row dt{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.row dd{margin:2px 0 0;font-weight:600;font-size:1.15rem}
+.timer{position:relative;width:200px;height:200px;margin-inline:auto}
+.timer svg{width:100%;height:100%;transform:rotate(-90deg)}
+.timer .track{fill:none;stroke:var(--line);stroke-width:10}
+.timer .prog{fill:none;stroke:var(--accent);stroke-width:10;stroke-linecap:round;stroke-dasharray:502.7;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear}
+.timer .clock{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.clock b{font-family:var(--font-mono);font-weight:500;font-size:2.1rem;font-variant-numeric:tabular-nums}
+.clock span{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.go{font:inherit;font-weight:600;cursor:pointer;padding:12px 22px;border-radius:999px;border:2px solid var(--accent);background:var(--accent);color:var(--on-accent);justify-self:start}
+.tip{margin:0;color:var(--muted);font-size:.95rem}
+
+footer{border-top:1px solid var(--line);padding-block:40px 56px}
+.foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;color:var(--muted);font-size:.9rem}
+.foot p{margin:0;max-width:30em}
+
+@media (max-width:820px){
+  .hero-grid,.brew{grid-template-columns:minmax(0,1fr)}
+  .panel{grid-template-columns:minmax(0,1fr)}
+  .tag.t2{right:0}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap bar">
+    <a class="brand" href="#top">Sahar</a>
+    <nav aria-label="Sections">
+      <a href="#lineup">Teas</a>
+      <a href="#calendar">Harvest</a>
+      <a href="#brew">Brew guide</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">Small-lot tea from four origins</p>
+        <h1>Tea, picked at first light.</h1>
+        <p class="lede">Sahar buys single-estate tea in lots of a few kilos and packs it within a week of the pluck. Every tin carries the harvest date, the right water temperature and the steep time that suits the leaf.</p>
+        <div class="cta">
+          <a class="btn" href="#lineup">See the teas</a>
+          <a class="btn ghost" href="#brew">Open the brew guide</a>
+        </div>
+        <dl class="facts">
+          <div><dt>Origins</dt><dd>4</dd></div>
+          <div><dt>Pluck to tin</dt><dd>7 days</dd></div>
+          <div><dt>Smallest tin</dt><dd>50 g</dd></div>
+        </dl>
+      </div>
+      <div class="cup-wrap" aria-hidden="true">
+        <div class="saucer"></div>
+        <div class="cup"></div>
+        <div class="liquid">
+          <span class="leaf l1"></span><span class="leaf l2"></span><span class="leaf l3"></span><span class="leaf l4"></span><span class="leaf l5"></span>
+        </div>
+        <span class="tag t1">92&deg;C</span>
+        <span class="tag t2">3:00 min</span>
+        <span class="tag t3">2.5 g / 200 ml</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="lineup">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">The lineup</p>
+        <h2>Four teas, each with its own water and clock.</h2>
+        <p>Tins are 50 g, roughly twenty cups. The colour dot shows how each one looks in the cup.</p>
+      </div>
+      <div class="lineup">
+        <article class="card">
+          <div class="swatch" style="background:#E9C46A"></div>
+          <p class="origin">Darjeeling, West Bengal</p>
+          <h3>First Flush Darjeeling</h3>
+          <p class="note">Pale gold, muscatel and green apple. Light enough to drink without milk, bright enough to wake you up.</p>
+          <div class="specs"><span>85&deg;C &middot; 3:00</span><span class="price">$16</span></div>
+        </article>
+        <article class="card">
+          <div class="swatch" style="background:#B5651D"></div>
+          <p class="origin">Upper Assam</p>
+          <h3>Assam Second Flush</h3>
+          <p class="note">Deep amber with malt, dark honey and a long finish. Holds up to milk and sugar.</p>
+          <div class="specs"><span>95&deg;C &middot; 4:00</span><span class="price">$12</span></div>
+        </article>
+        <article class="card">
+          <div class="swatch" style="background:#A8C66C"></div>
+          <p class="origin">Uji, Kyoto</p>
+          <h3>Uji Sencha</h3>
+          <p class="note">Steamed green leaf, sweet and savoury at once. Needs cooler water or it turns bitter.</p>
+          <div class="specs"><span>70&deg;C &middot; 1:30</span><span class="price">$18</span></div>
+        </article>
+        <article class="card">
+          <div class="swatch" style="background:#E0A14A"></div>
+          <p class="origin">Kashmir style blend</p>
+          <h3>Saffron Kahwa</h3>
+          <p class="note">Green tea with saffron threads, cardamom, cinnamon and slivered almond. Made for cold evenings.</p>
+          <div class="specs"><span>95&deg;C &middot; 5:00</span><span class="price">$14</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="calendar">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Harvest calendar</p>
+        <h2>Tea has seasons. We ship it in its own.</h2>
+        <p>Bars show when each tea is plucked or blended. The highlighted month is the current one.</p>
+      </div>
+      <div class="cal-scroll">
+        <div class="cal" id="cal" role="img" aria-label="Harvest months for each tea: Darjeeling March to April, Assam May to June, Uji April to May, Kahwa October to February."></div>
+      </div>
+      <p class="cal-note">Kahwa is a cold-weather blend, so its bar wraps around the new year.</p>
+    </div>
+  </section>
+
+  <section class="block" id="brew">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Brew guide</p>
+        <h2>Pick a tea, set the timer, pour on zero.</h2>
+        <p>Amounts are for one 200 ml cup. Use freshly boiled water and let it cool to the temperature shown.</p>
+      </div>
+      <div class="brew">
+        <div class="tabs" role="tablist" aria-label="Choose a tea" id="tabs"></div>
+        <div class="panel" role="tabpanel" id="panel" aria-live="polite">
+          <div class="readout">
+            <div class="big"><span id="temp">92</span><small>&deg;C</small></div>
+            <dl class="row">
+              <div><dt>Steep</dt><dd id="steep">3:00</dd></div>
+              <div><dt>Leaf</dt><dd id="grams">2.5 g</dd></div>
+              <div><dt>Water</dt><dd>200 ml</dd></div>
+            </dl>
+            <p class="tip" id="tip"></p>
+            <button class="go" id="go" type="button">Start steep timer</button>
+          </div>
+          <div class="timer" aria-hidden="true">
+            <svg viewBox="0 0 200 200"><circle class="track" cx="100" cy="100" r="80"/><circle class="prog" id="prog" cx="100" cy="100" r="80"/></svg>
+            <div class="clock"><b id="clock">3:00</b><span id="clockLabel">ready</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <p>Sahar is a sample brand made as a website design. Teas, prices and estates shown here are illustrative.</p>
+    <p>Steep times are starting points. Adjust by 15 seconds to suit your taste.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var months=["J","F","M","A","M","J","J","A","S","O","N","D"];
+  var rows=[
+    {name:"First flush Darjeeling",spans:[[3,5]]},
+    {name:"Uji first harvest",spans:[[4,6]]},
+    {name:"Assam second flush",spans:[[5,7]]},
+    {name:"Saffron Kahwa season",spans:[[10,13],[1,3]],spice:true}
+  ];
+  var cal=document.getElementById("cal");
+  var nowM=new Date().getMonth()+1;
+  var head=document.createElement("div");head.className="cal-row";
+  var blank=document.createElement("div");blank.className="lab";head.appendChild(blank);
+  months.forEach(function(m,i){
+    var d=document.createElement("div");d.className="m"+(i+1===nowM?" now":"");d.textContent=m;head.appendChild(d);
+  });
+  cal.appendChild(head);
+  rows.forEach(function(r){
+    var row=document.createElement("div");row.className="cal-row";
+    var lab=document.createElement("div");lab.className="lab";lab.textContent=r.name;row.appendChild(lab);
+    var track=document.createElement("div");track.className="track";row.appendChild(track);
+    r.spans.forEach(function(s){
+      var c=document.createElement("div");c.className="cell"+(r.spice?" spice":"");
+      c.style.gridColumn=(s[0]+1)+" / "+(s[1]+1);row.appendChild(c);
+    });
+    cal.appendChild(row);
+  });
+
+  var teas=[
+    {name:"First Flush Darjeeling",temp:85,secs:180,grams:"2.5 g",tip:"Water just off the boil, then wait about a minute. Skip milk."},
+    {name:"Assam Second Flush",temp:95,secs:240,grams:"2.5 g",tip:"Full boil is fine. Add milk after the steep, not before."},
+    {name:"Uji Sencha",temp:70,secs:90,grams:"3 g",tip:"Cool water keeps it sweet. A second steep needs only 30 seconds."},
+    {name:"Saffron Kahwa",temp:95,secs:300,grams:"2 g",tip:"Cover the cup while it steeps so the saffron and cardamom stay in."}
+  ];
+  var tabs=document.getElementById("tabs");
+  var temp=document.getElementById("temp"),steep=document.getElementById("steep"),grams=document.getElementById("grams"),tip=document.getElementById("tip");
+  var go=document.getElementById("go"),prog=document.getElementById("prog"),clock=document.getElementById("clock"),label=document.getElementById("clockLabel");
+  var C=502.7,cur=0,left=0,timerId=null;
+
+  function fmt(s){var m=Math.floor(s/60),r=s%60;return m+":"+(r<10?"0":"")+r}
+  function stop(){if(timerId){clearInterval(timerId);timerId=null}}
+  function reset(){
+    stop();left=teas[cur].secs;
+    clock.textContent=fmt(left);label.textContent="ready";
+    prog.style.transition="none";prog.style.strokeDashoffset="0";
+    go.textContent="Start steep timer";
+  }
+  function show(i){
+    cur=i;var t=teas[i];
+    temp.textContent=t.temp;steep.textContent=fmt(t.secs);grams.textContent=t.grams;tip.textContent=t.tip;
+    Array.prototype.forEach.call(tabs.children,function(b,j){b.setAttribute("aria-selected",j===i?"true":"false")});
+    reset();
+  }
+  teas.forEach(function(t,i){
+    var b=document.createElement("button");b.type="button";b.className="tab";b.setAttribute("role","tab");
+    b.id="tab"+i;b.textContent=t.name;
+    b.addEventListener("click",function(){show(i)});
+    tabs.appendChild(b);
+  });
+  go.addEventListener("click",function(){
+    if(timerId){reset();return}
+    if(left<=0)reset();
+    var total=teas[cur].secs;
+    label.textContent="steeping";go.textContent="Reset";
+    prog.style.transition="stroke-dashoffset 1s linear";
+    timerId=setInterval(function(){
+      left-=1;
+      clock.textContent=fmt(Math.max(left,0));
+      prog.style.strokeDashoffset=String(C*(1-left/total));
+      if(left<=0){stop();label.textContent="pour now";go.textContent="Steep again"}
+    },1000);
+  });
+  show(0);
+})();
+</script>
+</body>
+</html>
